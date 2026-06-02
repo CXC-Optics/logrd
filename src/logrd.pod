@@ -12,7 +12,7 @@ logrd - bash logging and stream redirection library
   log-warn "this is a warning"
 
   # log to a file, but copy the messages to the console
-  logrd-redirect-stream file --copy-to-console stdlog
+  logrd-redirect-streams file --copy-to-console stdlog
 
   log-warn "this warning goes to both file and the console"
 
@@ -30,11 +30,11 @@ allowing writing to multiple streams.  For example,
 
   echo "this goes to the console"
 
-  logrd-redirect-stream file1 --copy-to-console stdout
+  logrd-redirect-streams file1 --copy-to-console stdout
 
   echo "this goes to file1 and the console"
 
-  logrd-redirect-stream file2 --copy-to-stream stdout
+  logrd-redirect-streams file2 --copy-to-stream stdout
 
   echo "this goes to file1, file2, and the console"
 
@@ -46,7 +46,7 @@ I<Writing to streams other than stderr will be buffered.>
 
 Multiple streams may be directed to a single file:
 
-  logrd-redirect-stream file1 stdout stderr
+  logrd-redirect-streams file1 stdout stderr
 
 
 =head2 Nested stream redirection
@@ -59,11 +59,11 @@ to intermediate states is required, use subshells:
    source logrd.bash
    echo "this goes to the console"
 
-   logrd-redirect-stream file1 --copy-to-console stdout
+   logrd-redirect-streams file1 --copy-to-console stdout
    echo "this goes to file1 and the console"
 
    (
-     logrd-redirect-stream file2 stdout
+     logrd-redirect-streams file2 stdout
      echo "this goes to file1, file2, and the console"
    )
 
@@ -90,7 +90,7 @@ as well as the level agnostic command C<log-to>:
 The logging stream, I<stdlog>, writes by default to the C<stderr>
 stream, but may be redirected:
 
-  logrd-redirect-stream file stdlog
+  logrd-redirect-streams file stdlog
 
 The file descriptor associated with I<stdlog> may be obtained via
 the L</logrd-get> command.
@@ -161,12 +161,12 @@ The available options are:
 Copy (or don't) all redirected streams to the console (that is, to the streams in
 existence when B<logrd> was loaded).  For example, this causes
 
-  logrd-redirect-stream file stdout
+  logrd-redirect-streams file stdout
   ls
 
 to send the output of C<ls> to both I<file> and to the standard output stream
 
-L</logrd-redirect-stream> will also accept this option to restrict its application
+L</logrd-redirect-streams> will also accept this option to restrict its application
 to a single redirection.
 
 =item C<--copy-to-stream>
@@ -177,13 +177,13 @@ Copy (or don't) all redirected streams to their original destination as well as 
 
 For example, this causes
 
-  logrd-redirect-stream file1 stdout
-  logrd-redirect-stream file2 stdout
+  logrd-redirect-streams file1 stdout
+  logrd-redirect-streams file2 stdout
   ls
 
 to send the output of C<ls> to I<file1>, I<file2>, and to the standard output stream.
 
-L</logrd-redirect-stream> will also accept this option to restrict its application
+L</logrd-redirect-streams> will also accept this option to restrict its application
 to a single redirection.
 
 =item C<-q>
@@ -223,6 +223,8 @@ must already be open.
 Set the logging level.  It defaults to C<warn>.  It may be one of
 
   error warn notice info debug
+
+Unknown log levels are rejected.
 
 =back
 
@@ -269,11 +271,11 @@ obtain its file descriptor.
 
 =head3 logrd-redirect-streams
 
-  logrd-redirect-streams [-fd|-file] target [global options] stream [ stream options ] ...
+  logrd-redirect-streams [--fd|--file] target [global options] stream [ stream options ] ...
 
 Redirect one or more streams to a I<target>.  A target may be either a
 file descriptor or a file name.  It defaults to a filename; use the
-C<-fd> option to indicate it is a file descriptor.
+C<--fd> option to indicate it is a file descriptor.
 
 The following options are available.  If they are specified I<before> the streams,
 they will apply to all streams, otherwise they apply to the stream which precedes them.
@@ -287,7 +289,7 @@ they will apply to all streams, otherwise they apply to the stream which precede
 Copy (or don't) redirected streams to the console (that is, to the streams in
 existence when B<logrd> was loaded).  For example, this
 
-  logrd-redirect-stream file --copy-to-console stdout stderr
+  logrd-redirect-streams file --copy-to-console stdout stderr
 
 causes all output sent to I<stdout> and I<stderr> to be written to I<file> as well
 as to the console I<stdout> and I<stderr> streams.
@@ -300,8 +302,8 @@ Copy (or don't) redirected streams to their original destination as well as the 
 
 For example,
 
-  logrd-redirect-stream file1 stdout
-  logrd-redirect-stream file2 --copy-to-stream stdout
+  logrd-redirect-streams file1 stdout
+  logrd-redirect-streams file2 --copy-to-stream stdout
 
 causes output sent to I<stdout> to be written to both I<file1> and I<file2>
 
@@ -371,6 +373,8 @@ Set the logging level; it may be one of
 
   error warn notice info debug
 
+Unknown log levels are rejected and leave the current level unchanged.
+
 =back
 
 
@@ -421,10 +425,15 @@ The file descriptor for the I<stdlog> stream.
 
 =head1 ENVIRONMENT
 
-Default values for global parameters may be read from environment
-variables. By default the variables have a prefix of C<LOGRD_> (note
+Global parameters may be initialized and later overridden from
+environment variables. By default the variables have a prefix of C<LOGRD_> (note
 the trailing underscore); that may be changed by the L</--env-prefix>
-option when loding B<logrd>
+option when loading B<logrd>.
+
+The environment is consulted when the library is sourced and again when
+L</logrd-setup> runs.  If both matching environment variables and
+L</logrd-setup> options are provided, the environment values take
+precedence.
 
 The following variables are recognized; see the similarly named
 options in L</Loading> for more information
@@ -447,4 +456,3 @@ This software is Copyright (c) 2016 by Smithsonian Astrophysical Observatory.
 This is free software, licensed under:
 
   The GNU General Public License, Version 3, June 2007
-
