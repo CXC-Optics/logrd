@@ -61,3 +61,37 @@ load functions
     ok logrd-get copy_to_stream        copy_to_stream
     is "$(logrd-get starting_save_fd)"    99 starting_save_fdlevel
 )}
+
+@test "invalid log level keeps prior value" {(
+
+    set -eu
+    save-fds
+    source logrd.bash
+
+    is "$(logrd-get level)" warn level
+
+    ok ! logrd-set level nope invalid log level should fail
+
+    is "$(logrd-get level)" warn level preserved
+    [[ ${logrd_ERRORS[0]} == *"unknown log level: nope"* ]]	\
+	|| error "missing invalid level error: ${logrd_ERRORS[*]}"
+    [[ ${logrd_ERRORS[1]} == *"error setting attribute: level"* ]]	\
+	|| error "missing attribute context: ${logrd_ERRORS[*]}"
+
+)}
+
+@test "invalid environment log level is ignored during source" {(
+
+    set -eu
+    save-fds
+
+    export LOGRD_LOG_LEVEL=nope
+    source logrd.bash
+
+    is "$(logrd-get level)" warn level preserved
+    [[ ${logrd_ERRORS[0]} == *"unknown log level: nope"* ]]	\
+	|| error "missing invalid level error: ${logrd_ERRORS[*]}"
+    [[ ${logrd_ERRORS[1]} == *"error setting attribute: level"* ]]	\
+	|| error "missing attribute context: ${logrd_ERRORS[*]}"
+
+)}

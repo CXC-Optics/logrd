@@ -39,7 +39,8 @@ _logrd_create-log-facilities () {
 
 _logrd_level_to_int () {
     local var=LOG_${1}
-    echo ${!var:-0}
+    [[ ${!var+x} ]] || return 1
+    echo ${!var}
 }
 
 log-to () {
@@ -107,9 +108,8 @@ logrd-set () {
 
 _logrd_set-level () {
 
-    local level=$(_logrd_level_to_int "$1")
-
-    [[ $level != '' ]]				\
+    local level
+    level=$(_logrd_level_to_int "$1")		\
 	&& _logrd_LOG_LEVEL=$level		\
 	|| _logrd_error "unknown log level: $1"
 }
@@ -382,17 +382,20 @@ _logrd_save-fds () {
 
 _logrd_init-from-env () {
 
+    # When sourced, tolerate an invalid env log level and keep loading
+    # with the prior/default level.  When called from logrd-setup, keep
+    # invalid env-derived levels fatal.
+    local strict_level_validation=${1:-1}
+
     _logrd_set-var-from-env COPY_TO_CONSOLE
     _logrd_set-var-from-env COPY_TO_STREAM
     _logrd_set-var-from-env STARTING_SAVE_FD
     _logrd_set-var-from-env STDLOG_FD
 
-    # # this is a bit of a cheat, as _logrd_LOG_LEVEL normally is an
-    # # integer, and the passed log level is a string
-    _logrd_set-var-from-env LOG_LEVEL
+    local env_var=${_logrd_ENV_PREFIX}LOG_LEVEL
+    local log_level=${!env_var:-${_logrd_LOG_LEVELS[$_logrd_LOG_LEVEL]}}
 
-    # # set log level and make _logrd_LOG_LEVEL an integer
-    logrd-set level ${_logrd_LOG_LEVEL}
+    logrd-set level ${log_level} || (( ! strict_level_validation ))
 }
 
 _logrd_init () {
@@ -405,9 +408,9 @@ _logrd_init () {
     _logrd_STARTING_SAVE_FD=20
     _logrd_STDLOG_FD=2
 
-    _logrd_LOG_LEVEL=warn
+    _logrd_LOG_LEVEL=$LOG_warn
 
-    _logrd_init-from-env
+    _logrd_init-from-env 0
 
     # check if {varname}>&1 is acceptable. run in subshell else
     # messes up shell if check fails. this must be done first.
@@ -668,7 +671,7 @@ logrd-setup () {
 		;;
 
 	    -q|--quiet )
-		_logrd_LOG_LEVEL=error
+		logrd-set level error || return
 		;;
 
 	    --env-prefix)
@@ -700,11 +703,11 @@ logrd-setup () {
 
 	    --log-level)
 		shift
-		_logrd_LOG_LEVEL=$1
+		logrd-set level $1 || return
 		;;
 
 	    --log-level=*)
-		_logrd_LOG_LEVEL=${1#--log-level=}
+		logrd-set level ${1#--log-level=} || return
 		;;
 
 	    *)
@@ -722,4 +725,3 @@ logrd-setup () {
 }
 
 _logrd_init
-
