@@ -99,7 +99,7 @@ logrd-set () {
     local var=_logrd_set_attr_$attr
 
     if (( ${!var:-0} )) ; then
-	eval _logrd_set-$attr "$@" || _logrd_error "error setting attribute: $attr"
+	eval _logrd_set-$attr "$@" || _logrd_errors "error setting attribute: $attr"
     else
 	_logrd_error "unknown attribute or unsettable attribute: $attr"
     fi
