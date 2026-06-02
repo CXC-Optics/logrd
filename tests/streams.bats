@@ -498,3 +498,54 @@ load functions
 
 
 )}
+
+@test "restore-fds reports original fds on failure" {(
+
+    set -eu
+    save-fds
+    source logrd.bash
+
+    _logrd_reset-errors
+
+    _logrd_move-fd () {
+	return 1
+    }
+
+    _logrd_RESTORE_FDS_DUPS=( 70 71 )
+    _logrd_RESTORE_FDS_ORIG=( 10 11 )
+
+    ! _logrd_restore-fds || error "restore-fds should fail"
+
+    [[ ${logrd_ERRORS[0]} == *"error restoring fds: 10 11"* ]]	\
+	|| error "wrong restore-fds failure: ${logrd_ERRORS[*]}"
+
+)}
+
+@test "redirect-streams preserves rollback failure context" {(
+
+    set -eu
+    save-fds
+    source logrd.bash
+
+    tmpdir=$(mktmpdir)
+    trap "rm -rf $tmpdir" EXIT
+    trap "trap - EXIT ; error See $tmpdir" ERR
+
+    _logrd_move-fd () {
+	return 1
+    }
+
+    _logrd_redirect-fd () {
+	_logrd_errors "forced redirect failure: $1>$2"
+    }
+
+    ! logrd-redirect-streams $tmpdir/output stdout || error "redirect-streams should fail"
+
+    [[ ${logrd_ERRORS[0]} == *"forced redirect failure"* ]]	\
+	|| error "missing redirect failure: ${logrd_ERRORS[*]}"
+    [[ ${logrd_ERRORS[1]} == *"error restoring fds: 1"* ]]	\
+	|| error "missing restore failure: ${logrd_ERRORS[*]}"
+    [[ ${logrd_ERRORS[2]} == *"unable to redirect streams"* ]]	\
+	|| error "missing top-level redirect failure: ${logrd_ERRORS[*]}"
+
+)}

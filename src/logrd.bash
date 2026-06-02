@@ -349,7 +349,7 @@ _logrd_restore-fds () {
     local -a errors
     while (( ++idx < nfds )); do
 
-    	_logrd_move-fd ${_logrd_RESTORE_FDS_ORIG[$idx]} ${_logrd_RESTORE_FDS_DUPS[$idx]} || errors+=( $_{logrd_RESTORE_FDS_ORIG[$idx]} )
+    	_logrd_move-fd ${_logrd_RESTORE_FDS_ORIG[$idx]} ${_logrd_RESTORE_FDS_DUPS[$idx]} || errors+=( "${_logrd_RESTORE_FDS_ORIG[$idx]}" )
     done
 
     (( ! ${#errors[*]} )) || _logrd_errors  "error restoring fds: ${errors[*]}" || return

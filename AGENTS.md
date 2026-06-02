@@ -49,7 +49,7 @@ The POD now matches the main public shell entry points and option spellings.  Th
 ## Implementation traps to keep in mind
 
 - Invalid log levels are now rejected cleanly.  `logrd-set level ...` keeps the prior level unchanged, records the nested `unknown log level` error plus the outer attribute-context error, and source-time env validation is non-fatal while `logrd-setup` remains strict.
-- `_logrd_restore-fds` contains suspicious error-path code in its `errors+=` expression; if working in rollback logic, verify that path with tests before trusting it.
+- `_logrd_restore-fds` now reports the original fd list correctly when rollback fails, and `tests/streams.bats` contains dedicated failure-path coverage for both direct restore failure and `logrd-redirect-streams` rollback propagation.
 - `stdlog` is not just an alias for fd 2 after initialization. It is a saved/redirectable fd returned by `logrd-get stdlog`, and callers may write directly to it.
 - The copy semantics in `logrd-redirect-streams` depend on whether a stream was already marked as copied to console. That status is tracked separately in `_logrd_COPIED_TO_CONSOLE`.
 
