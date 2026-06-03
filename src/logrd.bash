@@ -91,34 +91,25 @@ _logrd_errors () {
 #
 # Logging
 
-# can't assume associative arrays. thanks Apple.
-_logrd_set_attr_level=1
-
 logrd-set () {
 
     local attr=$1 ; shift
-    local var=_logrd_set_attr_$attr
 
-    if (( ${!var:-0} )) ; then
-	case $attr in
-	    level )
-		local level
-		level=$(_logrd_level_to_int "$1") || {
-		    _logrd_error "unknown log level: $1"
-		    _logrd_errors "error setting attribute: $attr"
-		    return 1
-		}
-		_logrd_LOG_LEVEL=$level
-		;;
-
-	    * )
+    case $attr in
+	level )
+	    local level
+	    level=$(_logrd_level_to_int "$1") || {
+		_logrd_error "unknown log level: $1"
 		_logrd_errors "error setting attribute: $attr"
 		return 1
-		;;
-	esac
-    else
-	_logrd_error "unknown attribute or unsettable attribute: $attr"
-    fi
+	    }
+	    _logrd_LOG_LEVEL=$level
+	    ;;
+
+	* )
+	    _logrd_error "unknown attribute or unsettable attribute: $attr"
+	    ;;
+    esac
 }
 
 # can't assume associative arrays. thanks Apple.
