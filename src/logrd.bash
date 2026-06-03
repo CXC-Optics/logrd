@@ -222,7 +222,7 @@ _logrd_close-fds () {
 	_logrd_close-fd $fd || error=1
     done
 
-    (( ! error )) || return 1
+    return "$error"
 }
 
 _logrd_tee-fd () {
@@ -454,7 +454,7 @@ logrd-restore-streams () {
 	_logrd_restore-stream $stream || error=1
     done
 
-    (( ! error )) || return 1
+    return "$error"
 }
 
 logrd-redirect-streams () {
