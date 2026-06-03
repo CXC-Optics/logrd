@@ -502,7 +502,6 @@ logrd-redirect-streams () {
 	target=${target#/dev/fd/}
     fi
 
-    local var
     local idx
     local -a fds
     local -a fd_idx
