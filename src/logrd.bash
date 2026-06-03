@@ -10,7 +10,7 @@ _logrd_create-log-facilities () {
 
     local loglevel=0
     local facility
-    for facility in ${_logrd_LOG_LEVELS[*]} ; do
+    for facility in "${_logrd_LOG_LEVELS[@]}" ; do
 
 	local var=LOG_$facility
 	local log_level=$(( loglevel++ ))
@@ -380,7 +380,7 @@ _logrd_init-from-env () {
     _logrd_set-var-from-env STDLOG_FD
 
     local env_var=${_logrd_ENV_PREFIX}LOG_LEVEL
-    local log_level=${!env_var:-${_logrd_LOG_LEVELS[$_logrd_LOG_LEVEL]}}
+    local log_level=${!env_var:-${_logrd_LOG_LEVELS[_logrd_LOG_LEVEL]}}
 
     logrd-set level ${log_level} || (( ! strict_level_validation ))
 }
@@ -433,8 +433,8 @@ _logrd_restore-stream () {
     _logrd_stream-idx $1 || _logrd_error "can't restore stream" || return
     local idx=_logrd_STREAM_IDX
 
-    local redir_fd=${_logrd_REDIR_FD[$idx]}
-    local saved_fd=${_logrd_SAVED_FD[$idx]}
+    local redir_fd=${_logrd_REDIR_FD[idx]}
+    local saved_fd=${_logrd_SAVED_FD[idx]}
 
     _logrd_dup-fd  $redir_fd $saved_fd || _logrd_errors "error restoring fd $redir_fd to $saved_fd" || return
 
