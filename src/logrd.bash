@@ -236,7 +236,7 @@ _logrd_close-fd () {
 
 _logrd_close-fds () {
 
-    error=0
+    local error=0
     local fd
     for fd; do
 	_logrd_close-fd $fd || error=1
