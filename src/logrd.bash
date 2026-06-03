@@ -112,51 +112,40 @@ logrd-set () {
     esac
 }
 
-# can't assume associative arrays. thanks Apple.
-_logrd_get_attr_level=1
-_logrd_get_attr_copy_to_console=1
-_logrd_get_attr_copy_to_stream=1
-_logrd_get_attr_copied_to_console=1
-_logrd_get_attr_starting_save_fd=1
-_logrd_get_attr_stdlog=1
-
 logrd-get () {
 
     local attr=$1
-    local var=_logrd_get_attr_$attr
+    shift
 
-    if (( ${!var:-0} )) ; then
-	shift
-	_logrd_get-$attr "$@"
-    else
-	_logrd_error "can't retrieve attribute '$attr'"
-    fi
-}
+    case $attr in
+	level )
+	    echo ${_logrd_LOG_LEVELS[_logrd_LOG_LEVEL]}
+	    ;;
 
+	copy_to_console )
+	    (( _logrd_COPY_TO_CONSOLE ))
+	    ;;
 
-_logrd_get-level () {
-    echo ${_logrd_LOG_LEVELS[$_logrd_LOG_LEVEL]}
-}
+	copy_to_stream )
+	    (( _logrd_COPY_TO_STREAM ))
+	    ;;
 
-_logrd_get-copy_to_console () {
-    (( _logrd_COPY_TO_CONSOLE ))
-}
+	copied_to_console )
+	    _logrd_stream-idx "$1" && (( ${_logrd_COPIED_TO_CONSOLE[_logrd_STREAM_IDX]} ))
+	    ;;
 
-_logrd_get-copy_to_stream () {
-    (( _logrd_COPY_TO_STREAM ))
-}
+	starting_save_fd )
+	    echo $_logrd_STARTING_SAVE_FD
+	    ;;
 
-_logrd_get-starting_save_fd () {
-    echo $_logrd_STARTING_SAVE_FD
-}
+	stdlog )
+	    echo ${_logrd_REDIR_FD[_logrd_stdlog_idx]}
+	    ;;
 
-_logrd_get-stdlog () {
-    echo ${_logrd_REDIR_FD[_logrd_stdlog_idx]}
-}
-
-_logrd_get-copied_to_console () {
-
-    _logrd_stream-idx $1 && (( ${_logrd_COPIED_TO_CONSOLE[_logrd_STREAM_IDX]} ))
+	* )
+	    _logrd_error "can't retrieve attribute '$attr'"
+	    ;;
+    esac
 }
 
 declare -a logrd_ERRORS
