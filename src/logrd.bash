@@ -15,7 +15,7 @@ _logrd_create-log-facilities () {
 	local var=LOG_$facility
 	local log_level=$(( loglevel++ ))
 
-        eval $var=$log_level
+        printf -v "$var" '%s' "$log_level"
 	eval \
 	    log-$facility '() {'                                \
 	    "if (( _logrd_LOG_LEVEL >= $log_level )); then"     \
@@ -70,7 +70,7 @@ _logrd_set-var-from-env () {
     local logrd_var=_logrd_$1
     local env_var=${_logrd_ENV_PREFIX}${1}
 
-    eval "${logrd_var}=${!env_var:-${!logrd_var}}"
+    printf -v "$logrd_var" '%s' "${!env_var:-${!logrd_var}}"
 }
 
 _logrd_error () {
@@ -100,18 +100,25 @@ logrd-set () {
     local var=_logrd_set_attr_$attr
 
     if (( ${!var:-0} )) ; then
-	eval _logrd_set-$attr "$@" || _logrd_errors "error setting attribute: $attr"
+	case $attr in
+	    level )
+		local level
+		level=$(_logrd_level_to_int "$1") || {
+		    _logrd_error "unknown log level: $1"
+		    _logrd_errors "error setting attribute: $attr"
+		    return 1
+		}
+		_logrd_LOG_LEVEL=$level
+		;;
+
+	    * )
+		_logrd_errors "error setting attribute: $attr"
+		return 1
+		;;
+	esac
     else
 	_logrd_error "unknown attribute or unsettable attribute: $attr"
     fi
-}
-
-_logrd_set-level () {
-
-    local level
-    level=$(_logrd_level_to_int "$1")		\
-	&& _logrd_LOG_LEVEL=$level		\
-	|| _logrd_error "unknown log level: $1"
 }
 
 # can't assume associative arrays. thanks Apple.

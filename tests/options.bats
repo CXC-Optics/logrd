@@ -95,3 +95,17 @@ load functions
 	|| error "missing attribute context: ${logrd_ERRORS[*]}"
 
 )}
+
+@test "unknown attribute reports a single error" {(
+
+    set -eu
+    save-fds
+    source logrd.bash
+
+    ok ! logrd-set nope value unknown attribute should fail
+
+    [[ ${logrd_ERRORS[0]} == *"unknown attribute or unsettable attribute: nope"* ]]	\
+	|| error "missing attribute error: ${logrd_ERRORS[*]}"
+	is "${#logrd_ERRORS[@]}" 1 error count
+
+)}
