@@ -474,8 +474,8 @@ logrd-redirect-streams () {
 
     _logrd_reset-errors
 
-    local -a copy_to_console=( $_logrd_COPY_TO_CONSOLE )
-    local -a copy_to_stream=( $_logrd_COPY_TO_STREAM )
+    local -a stream_copy_to_console=( $_logrd_COPY_TO_CONSOLE )
+    local -a stream_copy_to_stream=( $_logrd_COPY_TO_STREAM )
 
     local target_type=file
     if [[ $1 == '--fd' ]]; then
@@ -509,35 +509,31 @@ logrd-redirect-streams () {
 	case $stream in
 
 	    --copy-to-console )
-		copy_to_console[$idx]=1
-		continue
+                stream_copy_to_console[idx]=1
 		;;
 
 	    --no-copy-to-console )
-		copy_to_console[$idx]=0
-		continue
+		stream_copy_to_console[idx]=0
 		;;
 
 	    --copy-to-stream )
-		copy_to_stream[$idx]=1
-		continue
+		stream_copy_to_stream[idx]=1
 		;;
 
 	    --no-copy-to-stream )
-		copy_to_stream[$idx]=0
-		continue
+		stream_copy_to_stream[idx]=0
 		;;
+
+            * )
+	        _logrd_stream-idx "$stream" || _logrd_errors "unknown stream" || continue
+	        idx=$_logrd_STREAM_IDX
+	        stream_copy_to_console[idx]=${stream_copy_to_console[0]}
+	        stream_copy_to_stream[idx]=${stream_copy_to_stream[0]}
+	        fd_idx+=( $idx )
+	        fds+=( ${_logrd_REDIR_FD[idx]} )
 
 	esac
 
-	_logrd_stream-idx $stream || _logrd_errors "unknown stream" || continue
-	idx=_logrd_STREAM_IDX
-
-	fd_idx+=( $idx )
-	fds+=( ${_logrd_REDIR_FD[$idx]} )
-
-	copy_to_console[$idx]=$copy_to_console
-	copy_to_stream[$idx]=$copy_to_stream
     done
 
     logrd_has-error && return 1
@@ -555,15 +551,12 @@ logrd-redirect-streams () {
     # to the same file, need to create an fd which redirects to the file and
     # dup it for each output steam
 
-    local file_redir
     if (( nfds == 1 )) ; then
-
 	if [[ $target_type == file ]]; then
 	    target_redir="$target"
 	else
 	    target_redir="&$target"
 	fi
-
     else
 	if [[ $target_type == file ]]; then
 	    _logrd_reserve-fds --redirect $target
@@ -580,6 +573,8 @@ logrd-redirect-streams () {
 	local fidx=${fd_idx[idx]}
 	local copied_to_console=${_logrd_COPIED_TO_CONSOLE[fidx]}
 	local console_fd=${_logrd_SAVED_FD[fidx]}
+	local copy_to_console=${stream_copy_to_console[fidx]}
+	local copy_to_stream=${stream_copy_to_stream[fidx]}
 
 	# copied      copy         copy
         # to_console  to_console   to_stream

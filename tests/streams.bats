@@ -499,6 +499,176 @@ load functions
 
 )}
 
+@test "copy-to-console option applies to preceding stream in a mixed call" {(
+
+    set -eu
+    save-fds
+
+    tmpdir=$(mktmpdir)
+    trap "rm -rf $tmpdir" EXIT
+    trap "trap - EXIT ; error See $tmpdir" ERR
+
+    exec 51>&1
+    exec 52>&2
+
+    exec 1>$tmpdir/stdout-console
+    exec 2>$tmpdir/stderr-console
+
+    source logrd.bash
+
+    ok logrd-redirect-streams $tmpdir/output stdout --copy-to-console stderr '${logrd_ERRORS[*]}'
+    ok logrd-get copied_to_console stdout '${logrd_ERRORS[*]}stdout copied-to-console flag not set'
+    ok ! logrd-get copied_to_console stderr '${logrd_ERRORS[*]}stderr copied-to-console flag unexpectedly set'
+
+    teststdout="stdout $(date)"
+    teststderr="stderr $(date)"
+
+    echo "$teststdout"
+    echo "$teststderr" >&2
+
+    ok logrd-restore-streams stderr stdout '${logrd_ERRORS[*]}'
+
+    exec 1>&-
+    exec 1>&51-
+    exec 2>&-
+    exec 2>&52-
+
+    output=$(< $tmpdir/output )
+    is "$output" "$teststdout"$'\n'"$teststderr" 'mixed output test string'
+
+    stdout_console=$(< $tmpdir/stdout-console )
+    is "$stdout_console" "$teststdout" 'stdout console test string'
+
+    stderr_console=$(< $tmpdir/stderr-console )
+    is "$stderr_console" '' 'stderr console should be empty'
+
+)}
+
+@test "copy-to-stream option applies to preceding stream in a mixed call" {(
+
+    set -eu
+    save-fds
+
+    tmpdir=$(mktmpdir)
+    trap "rm -rf $tmpdir" EXIT
+    trap "trap - EXIT ; error See $tmpdir" ERR
+
+    source logrd.bash
+
+    ok logrd-redirect-streams $tmpdir/stdout1 stdout '${logrd_ERRORS[*]}'
+    ok logrd-redirect-streams $tmpdir/stderr1 stderr '${logrd_ERRORS[*]}'
+
+    ok logrd-redirect-streams $tmpdir/output stdout --copy-to-stream stderr '${logrd_ERRORS[*]}'
+
+    teststdout="stdout $(date)"
+    teststderr="stderr $(date)"
+
+    echo "$teststdout"
+    echo "$teststderr" >&2
+
+    ok logrd-restore-streams stderr stdout '${logrd_ERRORS[*]}'
+
+    output=$(< $tmpdir/output )
+    is "$output" "$teststdout"$'\n'"$teststderr" 'mixed output test string'
+
+    stdout1=$(< $tmpdir/stdout1 )
+    is "$stdout1" "$teststdout" 'stdout prior stream test string'
+
+    stderr1=$(< $tmpdir/stderr1 )
+    is "$stderr1" '' 'stderr prior stream should be empty'
+
+)}
+
+@test "copy-to-console toggles apply to the stream they follow" {(
+
+    set -eu
+    save-fds
+
+    tmpdir=$(mktmpdir)
+    trap "rm -rf $tmpdir" EXIT
+    trap "trap - EXIT ; error See $tmpdir" ERR
+
+    exec 51>&1
+    exec 52>&2
+
+    exec 1>$tmpdir/stdout-console
+    exec 2>$tmpdir/stderr-console
+
+    source logrd.bash
+
+    ok logrd-redirect-streams $tmpdir/output stdout --copy-to-console stderr --no-copy-to-console stdlog '${logrd_ERRORS[*]}'
+
+    teststdout="stdout $(date)"
+    teststderr="stderr $(date)"
+    teststdlog="stdlog $(date)"
+
+    stdlog=$( logrd-get stdlog )
+
+    echo "$teststdout"
+    echo "$teststderr" >&2
+    echo "$teststdlog" >&$stdlog
+
+    ok logrd-restore-streams stderr stdout stdlog '${logrd_ERRORS[*]}'
+
+    exec 1>&-
+    exec 1>&51-
+    exec 2>&-
+    exec 2>&52-
+
+    output=$(< $tmpdir/output )
+    is "$output" "$teststdout"$'\n'"$teststderr"$'\n'"$teststdlog" 'mixed output test string'
+
+    stdout_console=$(< $tmpdir/stdout-console )
+    is "$stdout_console" "$teststdout" 'stdout console should match'
+
+    stderr_console=$(< $tmpdir/stderr-console )
+    is "$stderr_console" '' 'stderr console should stay empty'
+
+)}
+
+@test "copy-to-stream toggles apply to the stream they follow" {(
+
+    set -eu
+    save-fds
+
+    tmpdir=$(mktmpdir)
+    trap "rm -rf $tmpdir" EXIT
+    trap "trap - EXIT ; error See $tmpdir" ERR
+
+    source logrd.bash
+
+    ok logrd-redirect-streams $tmpdir/stdout1 stdout '${logrd_ERRORS[*]}'
+    ok logrd-redirect-streams $tmpdir/stderr1 stderr '${logrd_ERRORS[*]}'
+    ok logrd-redirect-streams $tmpdir/stdlog1 stdlog '${logrd_ERRORS[*]}'
+
+    ok logrd-redirect-streams $tmpdir/output stdout --copy-to-stream stderr --no-copy-to-stream stdlog '${logrd_ERRORS[*]}'
+
+    teststdout="stdout $(date)"
+    teststderr="stderr $(date)"
+    teststdlog="stdlog $(date)"
+
+    stdlog=$( logrd-get stdlog )
+
+    echo "$teststdout"
+    echo "$teststderr" >&2
+    echo "$teststdlog" >&$stdlog
+
+    ok logrd-restore-streams stderr stdout stdlog '${logrd_ERRORS[*]}'
+
+    output=$(< $tmpdir/output )
+    is "$output" "$teststdout"$'\n'"$teststderr"$'\n'"$teststdlog" 'mixed output test string'
+
+    stdout1=$(< $tmpdir/stdout1 )
+    is "$stdout1" "$teststdout" 'stdout prior stream test string'
+
+    stderr1=$(< $tmpdir/stderr1 )
+    is "$stderr1" '' 'stderr prior stream should be empty'
+
+    stdlog1=$(< $tmpdir/stdlog1 )
+    is "$stdlog1" '' 'stdlog prior stream should be empty'
+
+)}
+
 @test "restore-fds reports original fds on failure" {(
 
     set -eu
