@@ -584,30 +584,32 @@ logrd-redirect-streams () {
 
 
 
-	if (( ! copied_to_console && ! copy_to_console && ! copy_to_stream )) ; then
+	case "$copied_to_console:$copy_to_console:$copy_to_stream" in
 
-	    _logrd_redirect-fd $fd $target_redir || break
+	    0:0:0 )
+		_logrd_redirect-fd $fd $target_redir || break
+		;;
 
-	elif (( ! copied_to_console && copy_to_console && ! copy_to_stream )) ; then
+	    0:1:0 )
+		_logrd_tee-fd $fd "&$console_fd" $target_redir || break
+		;;
 
-	    _logrd_tee-fd $fd "&$console_fd" $target_redir || break
+	    0:1:1 )
+		_logrd_reserve-fds --dup $fd $fd || break
 
-	elif (( ! copied_to_console && copy_to_console && copy_to_stream )) ; then
+		dup_fd=${_logrd_RESERVE_FDS[0]}
+		tmp_fd=${_logrd_RESERVE_FDS[1]}
+		_logrd_tee-fd $tmp_fd "&$dup_fd" "&$console_fd" || break
+		_logrd_tee-fd $fd "&$tmp_fd" $target_redir || break
+		;;
 
-	    _logrd_reserve-fds --dup $fd $fd || break
+	    * )
+		_logrd_reserve-fds --dup $fd || break
+		dup_fd=$_logrd_RESERVE_FDS
+		_logrd_tee-fd $fd "&$dup_fd" $target_redir || break
+		;;
 
-	    dup_fd=${_logrd_RESERVE_FDS[0]}
-	    tmp_fd=${_logrd_RESERVE_FDS[1]}
-	    _logrd_tee-fd $tmp_fd "&$dup_fd" "&$console_fd" || break
-	    _logrd_tee-fd $fd "&$tmp_fd" $target_redir || break
-
-	else
-
-	    _logrd_reserve-fds --dup $fd || break
-	    dup_fd=$_logrd_RESERVE_FDS
-	    _logrd_tee-fd $fd "&$dup_fd" $target_redir || break
-
-	fi
+	esac
 
 	# this must happen regardless of dispatch table
 	(( copy_to_console )) && _logrd_COPIED_TO_CONSOLE[fidx]=1
