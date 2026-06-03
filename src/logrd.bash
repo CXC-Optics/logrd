@@ -153,12 +153,12 @@ _logrd_get-starting_save_fd () {
 }
 
 _logrd_get-stdlog () {
-    echo ${_logrd_REDIR_FD[$_logrd_stdlog_idx]}
+    echo ${_logrd_REDIR_FD[_logrd_stdlog_idx]}
 }
 
 _logrd_get-copied_to_console () {
 
-    _logrd_stream-idx $1 && (( ${_logrd_COPIED_TO_CONSOLE[$_logrd_STREAM_IDX]} ))
+    _logrd_stream-idx $1 && (( ${_logrd_COPIED_TO_CONSOLE[_logrd_STREAM_IDX]} ))
 }
 
 declare -a logrd_ERRORS
@@ -263,7 +263,7 @@ declare _logrd_auto_fd=0
 _logrd_reserve-fds () {
 
    local nfds=$#
-   local -a dups="$@"
+   local -a dups=( "$@" )
    local fd=$(( _logrd_STARTING_SAVE_FD - 1 ))
 
    local -a FD
@@ -349,7 +349,7 @@ _logrd_restore-fds () {
     local -a errors
     while (( ++idx < nfds )); do
 
-    	_logrd_move-fd ${_logrd_RESTORE_FDS_ORIG[$idx]} ${_logrd_RESTORE_FDS_DUPS[$idx]} || errors+=( "${_logrd_RESTORE_FDS_ORIG[$idx]}" )
+    	_logrd_move-fd ${_logrd_RESTORE_FDS_ORIG[idx]} ${_logrd_RESTORE_FDS_DUPS[idx]} || errors+=( "${_logrd_RESTORE_FDS_ORIG[idx]}" )
     done
 
     (( ! ${#errors[*]} )) || _logrd_errors  "error restoring fds: ${errors[*]}" || return
@@ -433,7 +433,7 @@ _logrd_setup () {
 
     # resave fds based upon options to logrd_setup
     unset _logrd_SAVED_FD[0]
-    _logrd_close-fds ${_logrd_SAVED_FD[*]} ${_logrd_REDIR_FD[$_logrd_stdlog_idx]}
+    _logrd_close-fds ${_logrd_SAVED_FD[*]} ${_logrd_REDIR_FD[_logrd_stdlog_idx]}
     _logrd_save-fds
 
     return 0
@@ -451,7 +451,7 @@ _logrd_restore-stream () {
 
     _logrd_dup-fd  $redir_fd $saved_fd || _logrd_errors "error restoring fd $redir_fd to $saved_fd" || return
 
-    _logrd_COPIED_TO_CONSOLE[$idx]=0
+    _logrd_COPIED_TO_CONSOLE[idx]=0
 
     return 0
 }
@@ -576,10 +576,10 @@ logrd-redirect-streams () {
 
     for (( idx=0; idx < nfds ; ++idx )) ; do
 
- 	local fd=${fds[$idx]}
-	local fidx=${fd_idx[$idx]}
-	local copied_to_console=${_logrd_COPIED_TO_CONSOLE[$fidx]}
-	local console_fd=${_logrd_SAVED_FD[$fidx]}
+	local fd=${fds[idx]}
+	local fidx=${fd_idx[idx]}
+	local copied_to_console=${_logrd_COPIED_TO_CONSOLE[fidx]}
+	local console_fd=${_logrd_SAVED_FD[fidx]}
 
 	# copied      copy         copy
         # to_console  to_console   to_stream
@@ -629,7 +629,7 @@ logrd-redirect-streams () {
 	fi
 
 	# this must happen regardless of dispatch table
-	(( copy_to_console )) && _logrd_COPIED_TO_CONSOLE[$fidx]=1
+	(( copy_to_console )) && _logrd_COPIED_TO_CONSOLE[fidx]=1
 
     done
 
