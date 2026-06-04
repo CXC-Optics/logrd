@@ -1,4 +1,6 @@
-include create_am_macros.mk
+include $(top_srcdir)/snippets/create_am_macros.mk
+include $(top_srcdir)/snippets/doc_dirs.mk
+include $(top_srcdir)/snippets/doc_man_init.mk
 
 ACLOCAL_AMFLAGS = -I m4 --install
 

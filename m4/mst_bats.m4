@@ -1,10 +1,11 @@
 # unpack bats source
-# serial 2
+# serial 3
 
 # MST_BATS
 #----------
 AC_DEFUN([MST_BATS],
 [
+AC_SUBST([MST_BATS_M4])
 AC_ARG_WITH( [bats],
              [AS_HELP_STRING([--with-bats=ARG],
                              [ARG is path to bats archive @<:@default=use bundled version@:>@])],

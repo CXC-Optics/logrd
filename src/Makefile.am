@@ -15,11 +15,17 @@ EXTRA_DIST	+= %D%/logrd.bash
 # this must be an explicit list of man pages; no make variables allowed.
 # currently, only section l man pages are supported.
 
-POD_SFX = .pod
-dist_manl_MANS = %D%/$(PACKAGE).l
-PODS = %D%/$(PACKAGE)
-POD_HTML = %D%/$(PACKAGE).html
-POD_PDF  = %D%/$(PACKAGE).pdf
+%C%_POD_SFX = .pod
+%C%_dist_manl_MANS = %D%/$(PACKAGE).l
+%C%_PODS = %D%/$(PACKAGE)
+%C%_POD_HTML = %D%/$(PACKAGE).html
+%C%_POD_PDF  = %D%/$(PACKAGE).pdf
+
+README_POD = %D%/$(PACKAGE)
+README_POD_SFX = .pod
+
+README_MD_POD = %D%/$(PACKAGE)
+README_MD_POD_SFX = .pod
 
 include %D%/pod_all.mk
 include %D%/pod_readme.mk

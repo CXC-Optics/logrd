@@ -1,4 +1,4 @@
-# serial 1
+# serial 2
 
 # MST_POD_GEN_DOCS
 # ----------------
@@ -6,6 +6,7 @@
 #  Find Pod conversion programs to generate documentation
 AC_DEFUN([MST_POD_GEN_DOCS],
 [
+AC_SUBST([MST_POD_GEN_DOCS_M4])
 AC_CHECK_PROG([POD2MAN],[pod2man],[yes],[no])
 AM_CONDITIONAL([MST_POD_GEN_DOCS_MAN],[test $POD2MAN = yes])
 AM_COND_IF([MST_POD_GEN_DOCS_MAN],

@@ -2,6 +2,9 @@
 # Makefile turns the symbolic which is bats/bin/bats ->
 # ../libexec/bats into a hard link. therefore, add libexec path
 
+## Prerequisites:
+MST_BATS_M4	     +=
+
 AM_TESTS_ENVIRONMENT += PATH=$(abs_top_srcdir)/%D%/bats/bin:%D%/bats/bin:$(abs_top_srcdir)/%D%/bats/libexec:%D%/bats/libexec:${PATH};
 
 EXTRA_DIST += %D%/bats

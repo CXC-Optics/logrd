@@ -1,61 +1,73 @@
-#============================================================================
-# pod_man.mk
+##============================================================================
+## pod_man.mk
+## May be multiply included
 
-POD_MAN_MK =
+%C%_POD_MAN_MK =
 
-# Snippets required:
-CREATE_AM_MACROS_MK +=
+## Prerequisites:
+INST_VARS_MK += 
+%C%_POD_ALL_MK +=
+DOC_MAN_INIT_MK +=
 
-# Variables required:
-#
-# see pod_man_init.mk
-#
-#  POD?SFX
-#    may be empty.  explicit suffix for .? files. used in conjunction
-#    with POD_SFX
+#----------------------------------------
 
-POD_MAN		=				\
-		$(dist_manl_MANS)		\
-		$(dist_man3_MANS)		\
-		$(dist_man5_MANS)		\
-		$(dist_man7_MANS)
+## Variables required:
+##
+## see pod_man_init.mk
+##
+##  POD?SFX
+##    may be empty.  explicit suffix for .? files. used in conjunction
+##    with POD_SFX
+
+%C%_POD_MAN		=			\
+		$(%C%_dist_manl_MANS)		\
+		$(%C%_dist_man3_MANS)		\
+		$(%C%_dist_man5_MANS)		\
+		$(%C%_dist_man7_MANS)
+
+dist_manl_MANS += $(%C%_dist_manl_MANS)
+dist_man3_MANS += $(%C%_dist_man3_MANS)
+dist_man5_MANS += $(%C%_dist_man5_MANS)
+dist_man7_MANS += $(%C%_dist_man7_MANS)
+
 
 if MST_POD_GEN_DOCS_MAN
 
-MAINTAINERCLEANFILES	+= $(POD_MAN)
+MAINTAINERCLEANFILES	+= $(%C%_POD_MAN)
 
-PODL_SFX = .l
-POD3_SFX = .3
-POD5_SFX = .5
-POD7_SFX = .7
-
+CLEANFILES		+= $(%C%_POD_MAN)
 
 SUFFIXES +=					\
-	$(PODL_SFX) $(PODL_SFX)$(POD_SFX)	\
-	$(POD3_SFX) $(POD3_SFX)$(POD_SFX)	\
-	$(POD5_SFX) $(POD5_SFX)$(POD_SFX)	\
-	$(POD7_SFX) $(POD7_SFX)$(POD_SFX)
+	$(PODL_SFX) $(PODL_SFX)$(%C%_POD_SFX)	\
+	$(POD3_SFX) $(POD3_SFX)$(%C%_POD_SFX)	\
+	$(POD5_SFX) $(POD5_SFX)$(%C%_POD_SFX)	\
+	$(POD7_SFX) $(POD7_SFX)$(%C%_POD_SFX)
 
-# e.g. create foo.l from foo.pod
-$(POD_SFX).l:
-	pod2man --name=`basename $< $(POD_SFX)` \
+## e.g. create foo.l from foo.pod
+$(%C%_POD_SFX).l:
+	p="$@"; $(mst__mkdir_p)
+	pod2man --name=`basename $< $(%C%_POD_SFX)` \
 		--section=l --release=' ' --center=' ' $< > $@
 
-# e.g. create foo.l from foo.l.pod
-$(PODL_SFX)$(POD_SFX).l:
-	pod2man --name=`basename $< $(PODL_SFX)$(POD_SFX)` \
+## e.g. create foo.l from foo.l.pod
+$(PODL_SFX)$(%C%_POD_SFX).l:
+	p="$@"; $(mst__mkdir_p)
+	pod2man --name=`basename $< $(PODL_SFX)$(%C%_POD_SFX)` \
 		--section=l --release=' ' --center=' ' $< > $@
 
-$(POD3_SFX)$(POD_SFX).3:
-	pod2man --name=`basename $< $(POD3_SFX)$(POD_SFX)` \
+$(POD3_SFX)$(%C%_POD_SFX).3:
+	p="$@"; $(mst__mkdir_p)
+	pod2man --name=`basename $< $(POD3_SFX)$(%C%_POD_SFX)` \
 		--section=3 --release=' ' --center=' ' $< > $@
 
-$(POD5_SFX)$(POD_SFX).5:
-	pod2man --name=`basename $< $(POD5_SFX)$(POD_SFX)` \
+$(POD5_SFX)$(%C%_POD_SFX).5:
+	p="$@"; $(mst__mkdir_p)
+	pod2man --name=`basename $< $(POD5_SFX)$(%C%_POD_SFX)` \
 		--section=5 --release=' ' --center=' ' $< > $@
 
-$(POD7_SFX)$(POD_SFX).7:
-	pod2man --name=`basename $< $(POD7_SFX)$(POD_SFX)` \
+$(POD7_SFX)$(%C%_POD_SFX).7:
+	p="$@"; $(mst__mkdir_p)
+	pod2man --name=`basename $< $(POD7_SFX)$(%C%_POD_SFX)` \
 		--section=7 --release=' ' --center=' ' $< > $@
 
 
