@@ -1,3 +1,15 @@
+0.05 : 2026-06-04T17:45:13-0400
+
+  [ BUG FIX ]
+
+    * logrd-redirect-streams didn't properly apply options to individual streams
+    * invalid log levels now fail, rather than setting the log level to 'error'
+
+  [ ENHANCEMENTS ]
+
+    * Code has been simplified
+
+
 0.04 : 2017-02-27T17:52:08-0500
 
   [ BUG FIX ]
