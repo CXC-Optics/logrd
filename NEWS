@@ -1,3 +1,10 @@
+0.06 : 2026-06-05T12:09:09-0400
+
+  [BUILD]
+
+    * new(er) versions of bats have changed the name of its LICENSE
+      file
+
 0.05 : 2026-06-04T17:45:13-0400
 
   [ BUG FIX ]
