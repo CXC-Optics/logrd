@@ -1,5 +1,5 @@
 # unpack bats source
-# serial 3
+# serial 4
 
 # MST_BATS
 #----------
@@ -56,7 +56,7 @@ AC_CACHE_CHECK([for BATS],[mst_cv_prog_bats],
 			 $TAR -C $tmp --strip-components 1 -xf $with_bats
 
 			 cp -a \
-			    $tmp/LICENSE \
+			    $tmp/LICENSE.md \
 			    $tmp/README.md \
 			    $tmp/bin \
 			    $tmp/libexec \
